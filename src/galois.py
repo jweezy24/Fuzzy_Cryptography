@@ -7,7 +7,7 @@ class polynomial():
     def __init__(self, size, field=None, poly=None):
         if poly:
             self.coeffs = poly.coeffs
-            self.coeffs = poly.size
+            self.size = poly.size
         else:
             self.coeffs = []
             self.size = size
@@ -97,7 +97,8 @@ class polynomial_arithmetic():
             return new_poly
 
     #we divide f/g        
-    def div(self, f, g):
+    #the remainder argument tells the function you would like to return the remainder rather than the quotient
+    def div(self, f, g, remainder=0):
         # if there is a dvide by zero error or one of the polynomials are zero
         zero_poly = polynomial(1)
         zeros = [0]
@@ -105,8 +106,11 @@ class polynomial_arithmetic():
 
         quotient = polynomial(f.size)
         new_coeffs = []
-        # dividend = polynomial(f.size, poly=f)
-        # divisor = polynomial(g.size, poly=g)
+        for i in range(0, f.size):
+            new_coeffs.append(0)
+        quotient.set_coeffs(new_coeffs)
+        dividend = polynomial(f.size, poly=f)
+        divisor = polynomial(g.size, poly=g)
 
         for i in range(0, f.size):
             new_coeffs.append(0)
@@ -115,28 +119,40 @@ class polynomial_arithmetic():
             numerator_size = f.size
             denomenator_size = g.size
             multiplier = 0
-            coeff = 1
+            coeff = 0
             dividend_position = f.size-1
             while (dividend_position >= g.size-1):
-                current_coeff = g.coeffs[dividend_position]
+                current_coeff = dividend.coeffs[dividend_position]
+                print(dividend.coeffs)
 
                 #finding the constant to multiply the function by
                 for i in range(0, self.field.max_num):
                     const = self.field.mult(i, g.coeffs[-1])
                     if (const ^ current_coeff == 0):
+                        coeff = i
+                        const = i
                         break
                 
+                quotient.coeffs[dividend_position-(g.size-1)] = coeff
                 if coeff != 0:
                     tmp_pos = 0
                     for j in range(g.size-1, -1,-1):
                         if(g.coeffs[j] != 0 ):
-                            quotient.coeffs[dividend_position-tmp_pos] ^= gf_mult(g.coeffs[j], const)
+                            print(coeff)
+                            dividend.coeffs[dividend_position-tmp_pos] ^= self.field.mult(g.coeffs[j], const)
                         tmp_pos+=1
 
                 dividend_position -= 1
-
         else:
             return zero_poly
+
+        quotient.resize()
+        dividend.resize()
+
+        if remainder == 0:
+            return quotient
+        else:
+            return dividend
 
 
                       
@@ -198,8 +214,8 @@ if __name__ == "__main__":
     p1 = polynomial(5)
     p2 = polynomial(2)
     black_box = polynomial_arithmetic(GF)
-    coeffs1 = [1,2,0,0,0]
-    coeffs2 = [0,1]
+    coeffs1 = [1,4,1,1,0]
+    coeffs2 = [1,1]
     
     # for i in range(0,8):
     #     x = random.randint(0,256)
@@ -209,12 +225,12 @@ if __name__ == "__main__":
     
     p1.set_coeffs(coeffs1)
     p1.resize()
-    print(p1.size)
+    # print(p1.size)
     p2.set_coeffs(coeffs2)
     p3 = black_box.mult(p1,p2)
     p4 = black_box.add(p1,p2)
     p5 = black_box.div(p1,p2)
 
-    print(p4)
+    print(p5)
 
   
