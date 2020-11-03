@@ -4,7 +4,7 @@
 import random
 
 class polynomial():
-    def __init__(self, size, field=None, poly=None):
+    def __init__(self, size, poly=None):
         if poly:
             self.coeffs = poly.coeffs
             self.size = poly.size
@@ -12,11 +12,8 @@ class polynomial():
             self.coeffs = []
             self.size = size
         
-        self.field = field
-        
 
     def set_coeffs(self, coeffs):
-        
         for num in coeffs:
             if (len(self.coeffs) < self.size):
                 self.coeffs.append(num)
@@ -164,6 +161,7 @@ class GaloisField():
         self.size = size
         self.max_num = 2**size
         self.prime_poly = prime_poly
+        self.generator = generator
         self.gflog = [0 for i in range(0, 2**size)]
         self.gfilog = [ 0 for i in range(0, 2**size)]
 
@@ -181,6 +179,8 @@ class GaloisField():
                 b = (b ^ self.prime_poly)
 
     def add(self, x, y):
+        if x > self.max_num or y > self.max_num:
+            return 0
         return (x^y)
 
     def mult(self, x, y):
@@ -206,31 +206,4 @@ class GaloisField():
 
     def __str__(self):
         return f"Gflog = {self.gflog}\t Gfilog = {self.gfilog}"
-            
-if __name__ == "__main__":
-    prime_poly = 0b100011101
-    generator = 0b10000011
-    GF = GaloisField(8, prime_poly, generator)
-    p1 = polynomial(5)
-    p2 = polynomial(2)
-    black_box = polynomial_arithmetic(GF)
-    coeffs1 = [1,4,1,1,0]
-    coeffs2 = [1,1]
-    
-    # for i in range(0,8):
-    #     x = random.randint(0,256)
-    #     y = random.randint(0,256)
-    #     coeffs1.append(x)
-    #     coeffs2.append(y)
-    
-    p1.set_coeffs(coeffs1)
-    p1.resize()
-    # print(p1.size)
-    p2.set_coeffs(coeffs2)
-    p3 = black_box.mult(p1,p2)
-    p4 = black_box.add(p1,p2)
-    p5 = black_box.div(p1,p2)
 
-    print(p5)
-
-  
