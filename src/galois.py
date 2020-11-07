@@ -153,10 +153,6 @@ class polynomial_arithmetic():
             return dividend
 
 
-                      
-
-        
-
 class GaloisField():
     def __init__(self, size, prime_poly, generator):
         self.size = size
@@ -207,6 +203,29 @@ class GaloisField():
         if(diff_log < 0):
             diff_log += self.max_num
         return self.gfilog[diff_log]
+
+    #x^a
+    def pow(self, x, a):
+        res = 1
+        for i in range(1, a+1):
+            res = self.mult(res, x)
+        return res
+
+    def get_generator_poly(self, t):
+        PA = polynomial_arithmetic(self)
+        tmp = polynomial(2)
+        coeffs = [1, self.generator]
+        tmp.set_coeffs(coeffs)
+
+        for i in range(2, (2*t)+1):
+            tmp_2 = polynomial(2)
+            coeffs = [1, self.pow(self.generator, i)]
+            tmp_2.set_coeffs(coeffs)
+            tmp = PA.mult(tmp, tmp_2)
+        
+        g = tmp
+
+        return g 
 
     def __str__(self):
         return f"Gflog = {self.gflog}\t Gfilog = {self.gfilog}"

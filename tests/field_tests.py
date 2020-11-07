@@ -85,6 +85,30 @@ class TestFields(unittest.TestCase):
         result = GF.mult(1000, 2)
         self.assertEqual(result, 0)
 
+    ''' Tests the exponential function'''
+    def test_exponential(self):
+        GF = GaloisField(8, prime_poly, generator)
+        res = 1
+        test_arr = []
+
+        for i in range(0, 255):
+            res = GF.pow(generator, i)
+            self.assertTrue(res not in test_arr)
+            test_arr.append(res)
+
+    ''' This tests if the generator polynomial is created correctly. '''
+    def test_generator_polynomial(self):
+        GF = GaloisField(8, prime_poly, generator)
+        t = 2
+
+        cores = [1,105,84,45,255]
+
+        g = GF.get_generator_poly(t)
+        
+        self.assertEqual(cores, g.coeffs)
+        
+
+
 
 
 
