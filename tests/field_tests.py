@@ -71,6 +71,21 @@ class TestFields(unittest.TestCase):
         result = GF.mult(1000, 2)
         self.assertEqual(result, 0)
 
+    ''' Our division algorithm is an inverse of the multiplication.
+        '''
+    def test_division(self):
+        GF = GaloisField(8, prime_poly, generator)
+        
+        for i in range(0, GF.max_num):
+            for j in range(0, GF.max_num):
+                result = GF.div(i,j)
+                self.assertTrue(result < GF.max_num)
+
+        
+        result = GF.mult(1000, 2)
+        self.assertEqual(result, 0)
+
+
 
 
 if __name__ == "__main__":

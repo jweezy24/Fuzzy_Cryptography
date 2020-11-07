@@ -6,8 +6,9 @@ import random
 class polynomial():
     def __init__(self, size, poly=None):
         if poly:
-            self.coeffs = poly.coeffs
+            self.coeffs = []
             self.size = poly.size
+            self.set_coeffs(poly.coeffs)
         else:
             self.coeffs = []
             self.size = size
@@ -26,6 +27,7 @@ class polynomial():
     def resize(self):
         new_coeffs = []
         check = True
+        start = 0
         for i in range(self.size-1, -1, -1):
             if check:
                 if self.coeffs[i] != 0:
@@ -120,8 +122,7 @@ class polynomial_arithmetic():
             dividend_position = f.size-1
             while (dividend_position >= g.size-1):
                 current_coeff = dividend.coeffs[dividend_position]
-                print(dividend.coeffs)
-
+                print(f"{f}/{g}")
                 #finding the constant to multiply the function by
                 for i in range(0, self.field.max_num):
                     const = self.field.mult(i, g.coeffs[-1])
@@ -189,11 +190,14 @@ class GaloisField():
         if (x >= self.max_num or y >= self.max_num):
             return 0
         sum_log = self.gflog[x] + self.gflog[y]
+        #print(f"The product is {self.gfilog[sum_log]}")
         if (sum_log >= self.max_num):
             sum_log -= self.max_num-1;
             if sum_log >= self.max_num:
                 return 0
-        #print(self.gfilog[sum_log])
+        
+        #print(f"Sum_log: {sum_log} = {self.gflog[x]} + {self.gflog[y]}")
+        #print(f"The product of {x} * {y} =  {self.gfilog[sum_log]}")
         return self.gfilog[sum_log]
 
     def div(self, x, y):
