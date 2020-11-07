@@ -237,6 +237,125 @@ class GaloisField():
         
         return res
 
+    def get_inverse(self, x):
+        
+        for i in range(1, self.max_num):
+            tmp = self.mult(x,i)
+            if tmp == 1:
+                return i
+        
+        return -1
+
     def __str__(self):
         return f"Gflog = {self.gflog}\t Gfilog = {self.gfilog}"
 
+
+class ReedSolomonObj():
+    def __init__(self, field, n, k):
+        self.n = n
+        self.k = k
+        self.t = int((n-k)/2)
+        self.field = field
+        self.PA = polynomial_arithmetic(field)
+
+    def calculate_syndrome(self, C, g, t):
+
+        synds = 0
+        S = polynomial(2*t)
+        S_coeffs = []
+
+        for i in range(0, 2*t):
+            S_coeffs.append(0)
+
+
+        if type(g) != type(polynomial(self.field)) or type(C) != type(polynomial(self.field)):
+            raise Exception('C and g both must be polynomial objects.')
+
+        s = self.PA.div(C, g, 1)
+        iter = 1
+
+        for i in range(1, 2*t+1):
+            S_coeffs[i-1] = eval_poly(s, self.field.pow(self.field.generator, i))
+            for j in range(0, i):
+                if(S_coeffs[i-1] == S_coeffs[j] and i-1 != j):
+                    iter = 0
+                if iter == 1:
+                    synds+=1
+            iter = 1
+        
+        return (S,synds)
+
+    def berlecamp_alg(self, S, t):
+        C = polynomial(2)
+        B = polynomial(2)
+        co1 = [1,0]
+        co2 = [1,0]
+
+        C.set_coeffs(co1)
+        B.set_coeffs(co2)
+
+        L = 0
+        m = 1
+        b = 1
+
+
+        if(t <= len(S.coeffs)):
+            t= len(S.coeffs)
+
+        for n in range(0, t):
+            d = S.coeffs[n]
+            for i in range(1, L+1)
+                d ^= self.field.mult(C.coeffs[i], S.coeffs[n-i])
+
+            if d == 0:
+                m = m+1
+            elif 2*L <= n+1:
+                T = polynomial(len(C), C)
+                coeff = self.field.mult(d, self.field.get_inverse(b))
+                
+                tmp = polynomial(m+1)
+                
+                tmp_coeffs = []
+                
+                for i in range(0, m+1):
+                    tmp_coeffs.append(0)
+                tmp_coeffs[m] = coeff
+                tmp.set_coeffs(tmp_coeffs)
+
+                C = self.PA.add(C, self.PA.mult(tmp, B))
+                L = n+1 - L
+                B = T
+                b =d
+                m = 1
+            else:
+                coeff = self.field.mult(d, self.field.get_inverse(b))
+                tmp = polynomial(m+1)
+                tmp_coeffs = []
+                for i in range(0, m+1):
+                    tmp_coeffs.append(0)
+                tmp_coeffs[m] = coeff
+                tmp.set_coeffs(tmp_coeffs)
+                C= self.PA.add(C, self.PA.mult(tmp, B))
+                m += 1
+
+        if L == 0:
+            return 0
+        
+        return C
+        
+    def get_sigma_r(self, s):
+        pos = 0
+        size = s.size
+        sig_r = polynomial(size)
+        sig_r_coeffs = []
+        
+        for i in range(0, size):
+            sig_r_coeffs.append(0)
+
+        for i in range(size-1, -1, -1):
+            sig_r_coeffs[pos] = s[i]
+            pos+=1
+        
+        return sig_r
+
+    

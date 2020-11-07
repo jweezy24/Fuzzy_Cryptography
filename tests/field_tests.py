@@ -123,6 +123,16 @@ class TestFields(unittest.TestCase):
             else:
                 self.assertTrue(val < 256)
 
+    ''' Here we test if the inverse exists for all elements in the set.
+        0 Does not have a mutiplicative inverse so we do not test for it'''
+    def test_inverse_value_finder(self):
+        GF = GaloisField(8, prime_poly, generator)
+
+        for i in range(1,256):
+            val = GF.get_inverse(i)
+            self.assertTrue(val != -1)
+        
+
 
 
 
