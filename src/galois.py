@@ -227,6 +227,16 @@ class GaloisField():
 
         return g 
 
+    def eval_poly(self, p, val):
+        if type(p) != type(polynomial(self)):
+            raise Exception('p argument has to be a polynomial object.')
+        
+        res = 0
+        for coeff in p.coeffs:
+            res ^= self.mult(coeff, val)
+        
+        return res
+
     def __str__(self):
         return f"Gflog = {self.gflog}\t Gfilog = {self.gfilog}"
 

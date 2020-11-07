@@ -106,7 +106,23 @@ class TestFields(unittest.TestCase):
         g = GF.get_generator_poly(t)
         
         self.assertEqual(cores, g.coeffs)
+
+    '''This test will check to see if the polynomial objects can evaluate correctly '''
+    def test_polynomial_evaluation(self):
+        GF = GaloisField(8, prime_poly, generator)
+
+        co2 = [212, 225, 63, 173, 11]
         
+        p = polynomial(len(co2))
+        p.set_coeffs(co2)
+
+        for i in range(0,10):
+            val = GF.eval_poly(p, i)
+            if i == 0:
+                self.assertEqual(val, 0)
+            else:
+                self.assertTrue(val < 256)
+
 
 
 
