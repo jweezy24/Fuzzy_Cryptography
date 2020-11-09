@@ -52,8 +52,53 @@ class TestReedSolomon(unittest.TestCase):
         correct_syndromes = [1,1,GF.pow(generator,5),1,0,GF.pow(generator,10)]
         poly,syndromes = RS.calculate_syndrome(C, g)
         self.assertEqual(correct_syndromes, poly.coeffs)
+    
+    '''Here we test the error locator polynomial creation to verify it's creation 
+        The polynomials that we tests come from https://ntrs.nasa.gov/citations/19900019023'''
+    def test_error_locator_poly(self):
+        n = 15
+        k = 9
+        RS = ReedSolomonObj(GF, n, k)
+        print(GF)
+        
+        g = RS.get_generator_poly() 
+        C = polynomial(9)
+        C_Coeffs = [GF.pow(generator,12),GF.pow(generator,8), GF.pow(generator,3), 
+        GF.pow(generator,4), GF.pow(generator,10), GF.pow(generator,8), 0, GF.pow(generator,11), 1]
+        C.set_coeffs(C_Coeffs)
 
+        correct_syndromes = [1,1,GF.pow(generator,5),1,0,GF.pow(generator,10)]
+        poly,syndromes = RS.calculate_syndrome(C, g)
+        self.assertEqual(correct_syndromes, poly.coeffs)
 
+        sig_r = RS.get_sigma_r(poly)
+
+        terms = [1,1,GF.pow(generator,5),1,0,GF.pow(generator,10)]
+        terms.reverse()
+
+        self.assertEqual(sig_r.coeffs, terms)
+    
+    '''Here we test the berlecamp alg from a scrambled message 
+        The polynomials that we tests come from https://ntrs.nasa.gov/citations/19900019023'''
+    def test_berlecamp_massy(self):
+        n = 15
+        k = 9
+        RS = ReedSolomonObj(GF, n, k)
+        print(GF)
+        
+        g = RS.get_generator_poly() 
+        C = polynomial(9)
+        C_Coeffs = [GF.pow(generator,12),GF.pow(generator,8), GF.pow(generator,3), 
+        GF.pow(generator,4), GF.pow(generator,10), GF.pow(generator,8), 0, GF.pow(generator,11), 1]
+        C.set_coeffs(C_Coeffs)
+
+        correct_syndromes = [1,1,GF.pow(generator,5),1,0,GF.pow(generator,10)]
+        poly,syndromes = RS.calculate_syndrome(C, g)
+        self.assertEqual(correct_syndromes, poly.coeffs)
+
+        correct_sigma = [1, 1, GF.pow(generator, 10)]
+        sig = RS.berlecamp_alg(poly)
+        self.assertEqual(sig.coeffs, correct_sigma)
         
 
         

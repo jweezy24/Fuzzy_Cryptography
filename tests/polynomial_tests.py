@@ -57,6 +57,26 @@ class TestPolynomial(unittest.TestCase):
         p.resize()
         self.assertEqual([1,2,3], p.coeffs)
         self.assertEqual(p.size, 3)
+    
+    '''Tests for a correct evaluation of the zeros
+        The array the method returns is a list of powers of the generator where the polynomial is zero.'''
+    def test_find_all_zeros(self):
+        # The prime polynomial is a prime within a field that we choose.
+        prime_poly = 0b100011101
+        # The generator element is a element that when multiplied to itself will generate all elements within the field
+        generator = 0b10000011
+        #This is the default field
+        GF = GaloisField(8, prime_poly, generator)
+        
+        #1 + 2x + 3x^2
+        coeffs = [1,1]
+        p = polynomial(3)
+        p.set_coeffs(coeffs)
+        zeros = p.find_zeros(GF)
+        zeros_check =[255]
+        self.assertEqual(zeros, zeros_check)
+
+
 
 if __name__ == "__main__":
     unittest.main()

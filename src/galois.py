@@ -23,6 +23,18 @@ class polynomial():
     def set_size(self, size):
         self.size = size
 
+    def find_zeros(self, field):
+        max_num = field.max_num
+        zeros = []
+
+        for i in range(1, max_num):
+            num = field.eval_poly(self, field.pow(field.generator, i))
+            if num == 0:
+                zeros.append(i) 
+        
+        return zeros
+
+
     def resize(self):
         new_coeffs = []
         check = True
@@ -207,6 +219,8 @@ class GaloisField():
 
     #x^a
     def pow(self, x, a):
+        if x == 0:
+            return 0
         res = 1
         for i in range(1, a+1):
             res = self.mult(res, x)
@@ -219,11 +233,8 @@ class GaloisField():
         res = p.coeffs[0]
         pos = 0
         for coeff in p.coeffs:
-
-            
             if pos > 0:
                 res ^= self.mult(coeff, self.pow(val,pos))
-            
             pos+=1
         
         return res
@@ -305,7 +316,7 @@ class ReedSolomonObj():
             if d == 0:
                 m = m+1
             elif 2*L <= n+1:
-                T = polynomial(len(C), C)
+                T = polynomial(len(C.coeffs), C)
                 coeff = self.field.mult(d, self.field.get_inverse(b))
                 
                 tmp = polynomial(m+1)
@@ -336,8 +347,10 @@ class ReedSolomonObj():
         if L == 0:
             return 0
         
+        C.resize()
         return C
-        
+
+  
     def get_sigma_r(self, s):
         pos = 0
         size = s.size
@@ -348,8 +361,9 @@ class ReedSolomonObj():
             sig_r_coeffs.append(0)
 
         for i in range(size-1, -1, -1):
-            sig_r_coeffs[pos] = s[i]
+            sig_r_coeffs[pos] = s.coeffs[i]
             pos+=1
+        sig_r.set_coeffs(sig_r_coeffs)
         
         return sig_r
 
