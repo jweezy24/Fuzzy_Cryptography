@@ -18,8 +18,7 @@ class polynomial():
         for num in coeffs:
             if (len(self.coeffs) < self.size):
                 self.coeffs.append(num)
-            else:
-                print("Polynomial Full")
+        
     
     def set_size(self, size):
         self.size = size
@@ -120,9 +119,9 @@ class polynomial_arithmetic():
             multiplier = 0
             coeff = 0
             dividend_position = f.size-1
+            quotient_pos = 0
             while (dividend_position >= g.size-1):
                 current_coeff = dividend.coeffs[dividend_position]
-                print(f"{f}/{g}")
                 #finding the constant to multiply the function by
                 for i in range(0, self.field.max_num):
                     const = self.field.mult(i, g.coeffs[-1])
@@ -136,8 +135,8 @@ class polynomial_arithmetic():
                     tmp_pos = 0
                     for j in range(g.size-1, -1,-1):
                         if(g.coeffs[j] != 0 ):
-                            print(coeff)
                             dividend.coeffs[dividend_position-tmp_pos] ^= self.field.mult(g.coeffs[j], const)
+                            dividend.resize()
                         tmp_pos+=1
 
                 dividend_position -= 1
@@ -148,8 +147,10 @@ class polynomial_arithmetic():
         dividend.resize()
 
         if remainder == 0:
+            print(f"quotient = {quotient}")
             return quotient
         else:
+            print(f"dividend = {dividend}")
             return dividend
 
 
@@ -172,7 +173,7 @@ class GaloisField():
             self.gflog[b] = log
             self.gfilog[log] = b
             b = b << 1
-            if(b & self.max_num == 256):
+            if(b & self.max_num == 2**self.size):
                 b = (b ^ self.prime_poly)
 
     def add(self, x, y):
@@ -201,7 +202,7 @@ class GaloisField():
             return 0
         diff_log = self.gflog[x] - self.gflog[y]
         if(diff_log < 0):
-            diff_log += self.max_num
+            diff_log += self.max_num-1
         return self.gfilog[diff_log]
 
     #x^a
@@ -211,29 +212,19 @@ class GaloisField():
             res = self.mult(res, x)
         return res
 
-    def get_generator_poly(self, t):
-        PA = polynomial_arithmetic(self)
-        tmp = polynomial(2)
-        coeffs = [1, self.generator]
-        tmp.set_coeffs(coeffs)
-
-        for i in range(2, (2*t)+1):
-            tmp_2 = polynomial(2)
-            coeffs = [1, self.pow(self.generator, i)]
-            tmp_2.set_coeffs(coeffs)
-            tmp = PA.mult(tmp, tmp_2)
-        
-        g = tmp
-
-        return g 
-
     def eval_poly(self, p, val):
         if type(p) != type(polynomial(self)):
             raise Exception('p argument has to be a polynomial object.')
         
-        res = 0
+        res = p.coeffs[0]
+        pos = 0
         for coeff in p.coeffs:
-            res ^= self.mult(coeff, val)
+
+            
+            if pos > 0:
+                res ^= self.mult(coeff, self.pow(val,pos))
+            
+            pos+=1
         
         return res
 
@@ -252,14 +243,17 @@ class GaloisField():
 
 class ReedSolomonObj():
     def __init__(self, field, n, k):
+        if k > n:
+            raise Exception("k has to be this relation to n, k <= n")
+
         self.n = n
         self.k = k
         self.t = int((n-k)/2)
         self.field = field
         self.PA = polynomial_arithmetic(field)
 
-    def calculate_syndrome(self, C, g, t):
-
+    def calculate_syndrome(self, C, g):
+        t = self.t
         synds = 0
         S = polynomial(2*t)
         S_coeffs = []
@@ -270,22 +264,23 @@ class ReedSolomonObj():
 
         if type(g) != type(polynomial(self.field)) or type(C) != type(polynomial(self.field)):
             raise Exception('C and g both must be polynomial objects.')
-
         s = self.PA.div(C, g, 1)
         iter = 1
+        
 
         for i in range(1, 2*t+1):
-            S_coeffs[i-1] = eval_poly(s, self.field.pow(self.field.generator, i))
+            S_coeffs[i-1] = self.field.eval_poly(s, self.field.pow(self.field.generator, i))
             for j in range(0, i):
                 if(S_coeffs[i-1] == S_coeffs[j] and i-1 != j):
                     iter = 0
-                if iter == 1:
-                    synds+=1
+            if iter == 1:
+                synds+=1
             iter = 1
-        
+        S.set_coeffs(S_coeffs)
         return (S,synds)
 
-    def berlecamp_alg(self, S, t):
+    def berlecamp_alg(self, S):
+        t = self.t
         C = polynomial(2)
         B = polynomial(2)
         co1 = [1,0]
@@ -304,7 +299,7 @@ class ReedSolomonObj():
 
         for n in range(0, t):
             d = S.coeffs[n]
-            for i in range(1, L+1)
+            for i in range(1, L+1):
                 d ^= self.field.mult(C.coeffs[i], S.coeffs[n-i])
 
             if d == 0:
@@ -357,5 +352,23 @@ class ReedSolomonObj():
             pos+=1
         
         return sig_r
+
+    def get_generator_poly(self):
+        t = self.t
+        PA = polynomial_arithmetic(self.field)
+        tmp = polynomial(2)
+        coeffs = [self.field.generator,1]
+        tmp.set_coeffs(coeffs)
+
+        for i in range(2, (2*t)+1):
+            tmp_2 = polynomial(2)
+            coeffs = [self.field.pow(self.field.generator, i), 1]
+            tmp_2.set_coeffs(coeffs)
+            tmp = PA.mult(tmp, tmp_2)
+        
+        # tmp.coeffs.reverse()
+        g = tmp
+
+        return g 
 
     

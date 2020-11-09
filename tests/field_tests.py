@@ -96,17 +96,6 @@ class TestFields(unittest.TestCase):
             self.assertTrue(res not in test_arr)
             test_arr.append(res)
 
-    ''' This tests if the generator polynomial is created correctly. '''
-    def test_generator_polynomial(self):
-        GF = GaloisField(8, prime_poly, generator)
-        t = 2
-
-        cores = [1,105,84,45,255]
-
-        g = GF.get_generator_poly(t)
-        
-        self.assertEqual(cores, g.coeffs)
-
     '''This test will check to see if the polynomial objects can evaluate correctly '''
     def test_polynomial_evaluation(self):
         GF = GaloisField(8, prime_poly, generator)
