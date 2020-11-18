@@ -29,7 +29,7 @@ class polynomial():
         max_num = field.max_num
         zeros = []
 
-        for i in range(1, max_num):
+        for i in range(0, max_num):
             num = field.eval_poly(self, field.pow(field.generator, i))
             if num == 0:
                 zeros.append(i) 
@@ -106,6 +106,7 @@ class polynomial_arithmetic():
                     j-=1
                 i -= 1
             new_poly.set_coeffs(new_coeffs)
+            new_poly.resize()
             return new_poly
 
     #we divide f/g        
@@ -115,6 +116,11 @@ class polynomial_arithmetic():
         zero_poly = polynomial(1)
         zeros = [0]
         zero_poly.set_coeffs(zeros)
+
+        if f.coeffs == g.coeffs:
+            single_poly = polynomial(1)
+            single_poly.set_coeffs([1])
+            return single_poly
 
         quotient = polynomial(f.size)
         new_coeffs = []
@@ -150,7 +156,7 @@ class polynomial_arithmetic():
                     for j in range(g.size-1, -1,-1):
                         if(g.coeffs[j] != 0 ):
                             dividend.coeffs[dividend_position-tmp_pos] ^= self.field.mult(g.coeffs[j], const)
-                            dividend.resize()
+                            # dividend.resize()
                         tmp_pos+=1
 
                 dividend_position -= 1
@@ -228,7 +234,10 @@ class GaloisField():
 
     def eval_poly(self, p, val):
         if type(p) != type(polynomial(self)):
-            raise Exception('p argument has to be a polynomial object.')
+            if type(p) == type(1):
+                return p
+            else:
+                raise Exception('p argument has to be a polynomial object.')
         
         res = p.coeffs[0]
         pos = 0
@@ -276,6 +285,8 @@ class ReedSolomonObj():
         if type(g) != type(polynomial(self.field)) or type(C) != type(polynomial(self.field)):
             raise Exception('C and g both must be polynomial objects.')
         s = self.PA.div(C, g, 1)
+        if s.coeffs == [1]:
+            return 0,0
         iter = 1
         
 
@@ -283,6 +294,7 @@ class ReedSolomonObj():
             S_coeffs[i-1] = self.field.eval_poly(s, self.field.pow(self.field.generator, i))
             for j in range(0, i):
                 if(S_coeffs[i-1] == S_coeffs[j] and i-1 != j):
+                    #print(f"{S_coeffs} {i-1} {j}")
                     iter = 0
             if iter == 1:
                 synds+=1
@@ -290,8 +302,7 @@ class ReedSolomonObj():
         S.set_coeffs(S_coeffs)
         return (S,synds)
 
-    def berlecamp_alg(self, S):
-        t = self.t
+    def berlecamp_alg(self, S, t):
         C = polynomial(2)
         B = polynomial(2)
         co1 = [1,0]
@@ -305,7 +316,7 @@ class ReedSolomonObj():
         b = 1
 
 
-        if(t <= len(S.coeffs)):
+        if(t <= len(S.coeffs)-1):
             t= len(S.coeffs)
 
         for n in range(0, t):
@@ -316,13 +327,13 @@ class ReedSolomonObj():
             if d == 0:
                 m = m+1
             elif 2*L <= n+1:
-                T = polynomial(len(C.coeffs), C)
+                T = C
                 coeff = self.field.mult(d, self.field.get_inverse(b))
-                
                 tmp = polynomial(m+1)
                 
                 tmp_coeffs = []
-                
+
+                #print(f"d = {d} b = {b} coeff = {coeff} m = {m} C = {C} B = {B}")
                 for i in range(0, m+1):
                     tmp_coeffs.append(0)
                 tmp_coeffs[m] = coeff
@@ -333,6 +344,7 @@ class ReedSolomonObj():
                 B = T
                 b =d
                 m = 1
+                #print(f"d = {d} b = {b} coeff = {coeff} m = {m} C = {C} B = {B} tmp = {tmp}")
             else:
                 coeff = self.field.mult(d, self.field.get_inverse(b))
                 tmp = polynomial(m+1)
@@ -364,6 +376,7 @@ class ReedSolomonObj():
             sig_r_coeffs[pos] = s.coeffs[i]
             pos+=1
         sig_r.set_coeffs(sig_r_coeffs)
+        sig_r.resize()
         
         return sig_r
 
@@ -408,7 +421,9 @@ class ReedSolomonObj():
     def correct_found_errors(self,C,locations,errors):
         count = 0
         for i in locations:
-            C.coeffs[i] ^= errors[count]
+            #print(f"count = {count} i = {i}")
+            if i < len(C.coeffs):
+                C.coeffs[i] ^= errors[count]
             count+=1
         C.resize()
         return C
