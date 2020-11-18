@@ -2,6 +2,8 @@
 # unsigned int prim_poly = (unsigned int) 0b100011101;
 # int generator = (unsigned int)0b10000011;
 import random
+import numpy as np
+from gauss import *
 
 class polynomial():
     def __init__(self, size, poly=None):
@@ -159,10 +161,8 @@ class polynomial_arithmetic():
         dividend.resize()
 
         if remainder == 0:
-            print(f"quotient = {quotient}")
             return quotient
         else:
-            print(f"dividend = {dividend}")
             return dividend
 
 
@@ -385,4 +385,31 @@ class ReedSolomonObj():
 
         return g 
 
-    
+    def find_error_values(self, C, roots):
+        matrix = []
+        count = 0
+        Guass = GaussianObj(self.field)
+
+        B = []
+
+        for i in range(0, len(roots)):
+            A = []
+            for j in range(0,len(roots)+1):
+                if j < len(roots):
+                    A.append(self.field.pow(self.field.pow(self.field.generator, roots[j]), count+1))
+                else:
+                    A.append(C.coeffs[i])
+                    
+            count+=1
+            matrix.append(A)
+        sols = Guass.solve_system(matrix)
+        return sols
+
+    def correct_found_errors(self,C,locations,errors):
+        count = 0
+        for i in locations:
+            C.coeffs[i] ^= errors[count]
+            count+=1
+        C.resize()
+        return C
+
